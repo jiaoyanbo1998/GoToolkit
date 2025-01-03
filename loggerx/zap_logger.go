@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-// zap（日志管理库）
+// ZapLogger（日志管理库）
 type ZapLogger struct {
 	zapLogger *zap.Logger // 创建zap.Logger实例（日志对象）
 }
