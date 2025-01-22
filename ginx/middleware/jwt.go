@@ -1,12 +1,12 @@
 package middleware
 
 import (
+	"GoToolkit/loggerx"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/redis/go-redis/v9"
 	"net/http"
-	"webook-grpc/pkg/loggerx"
 )
 
 type JwtMiddlewareBuilder struct {

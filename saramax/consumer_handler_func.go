@@ -1,9 +1,9 @@
 package saramax
 
 import (
+	"GoToolkit/loggerx"
 	"encoding/json"
 	"github.com/IBM/sarama"
-	"webook-grpc/pkg/loggerx"
 )
 
 // Handler 泛型结构体，用于处理kafka消费者信息

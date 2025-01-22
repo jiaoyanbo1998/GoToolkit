@@ -1,16 +1,16 @@
 package miniox
 
 import (
-	"Zentao/third/minio"
 	"bytes"
 	"context"
+	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"strconv"
 )
 
 // MinioClient minio客户端
 type MinioClient struct {
-	c *minio.client
+	c *minio.Client
 }
 
 // NewMinioClient 初始化minio客户端

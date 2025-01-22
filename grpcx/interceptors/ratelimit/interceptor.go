@@ -1,13 +1,13 @@
 package ratelimit
 
 import (
+	"GoToolkit/limitx"
+	"GoToolkit/loggerx"
 	"context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"strings"
-	"lifelog-grpc/pkg/limitx"
-	"lifelog-grpc/pkg/loggerx"
 )
 
 // Interceptor 拦截器
