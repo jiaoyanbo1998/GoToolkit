@@ -7,14 +7,16 @@ import (
 	"time"
 )
 
+// MiddlewareBuilder 统计HTTP请求的响应信息，包括：响应时间，请求数量，错误码数量
 type MiddlewareBuilder struct {
-	Namespace  string
-	Subsystem  string
-	Name       string
-	Help       string
-	InstanceId string
+	Namespace  string // 命名空间
+	Subsystem  string // 子系统
+	Name       string // 指标名称
+	Help       string // 指标描述
+	InstanceId string // 实例ID
 }
 
+// NewMiddlewareBuilder 初始化中间件
 func NewMiddlewareBuilder(Namespace, Subsystem, Name, Help,
 	InstanceId string) *MiddlewareBuilder {
 	return &MiddlewareBuilder{
@@ -55,8 +57,6 @@ func (m *MiddlewareBuilder) BuildGinHttpResponseInfo() gin.HandlerFunc {
 		//	  status：http请求的状态码，标记请求的状态，200成功，404资源不存在，500服务端内部错误
 		//    注意：method，pattern和status的笛卡尔积数量不能太大，否则会占用过多内存，造成内存泄露
 	}, []string{"method", "pattern", "status"})
-	// 注册"采集指标"，告诉prometheus要采集这些指标
-	prometheus.MustRegister(summaryVec) // 当Namespace+Subsystem+Name重复，此处会panic
 	// 2.统计当前正在执行的http请求的数量
 	gauge := prometheus.NewGauge(prometheus.GaugeOpts{
 		Namespace: m.Namespace,
@@ -67,8 +67,6 @@ func (m *MiddlewareBuilder) BuildGinHttpResponseInfo() gin.HandlerFunc {
 			"instance_id": m.InstanceId,
 		},
 	})
-	// 注册指标
-	prometheus.MustRegister(gauge)
 	// 3.统一监控错误码
 	counterVec := prometheus.NewCounterVec(prometheus.CounterOpts{
 		Namespace: m.Namespace,
@@ -79,8 +77,8 @@ func (m *MiddlewareBuilder) BuildGinHttpResponseInfo() gin.HandlerFunc {
 			"instance_id": m.InstanceId,
 		},
 	}, []string{"method", "code"})
-	// 注册指标
-	prometheus.MustRegister(counterVec)
+	// 将指标注册到prometheus中，告诉prometheus，我要采集这些指标
+	registerMetrics(summaryVec, gauge, counterVec)
 	return func(ctx *gin.Context) {
 		// 记录请求开始的时间
 		start := time.Now()
@@ -113,5 +111,20 @@ func (m *MiddlewareBuilder) BuildGinHttpResponseInfo() gin.HandlerFunc {
 		}()
 		// 最终会执行到业务中
 		ctx.Next()
+	}
+}
+
+// registerMetrics 一起注册多个指标
+func registerMetrics(metrics ...prometheus.Collector) {
+	for _, metric := range metrics {
+		// 注册指标
+		err := prometheus.Register(metric)
+		if err != nil {
+			// 判断是否是重复注册错误
+			_, ok := err.(prometheus.AlreadyRegisteredError)
+			if !ok {
+				panic(err) // 不是，重复注册错误，才 panic
+			}
+		}
 	}
 }
